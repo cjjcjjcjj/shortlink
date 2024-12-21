@@ -58,6 +58,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDo> implements 
             throw new ClientException(USER_NAME_EXIST);
         }
         RLock lock = redissonClient.getLock(LOCK_USER_REGISTER_KEY + userRegisterReqDTO.getUsername());
+        // TODO 锁的判断还是有点问题
         try {
             if (lock.tryLock()){
                 //只给一个锁就行，其他就是尝试，默认有一个会成功注册
