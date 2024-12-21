@@ -11,6 +11,7 @@ import com.nageoffer.shortlink.admin.dto.resp.UserLoginRespDTO;
 import com.nageoffer.shortlink.admin.dto.resp.UserRespDTO;
 import com.nageoffer.shortlink.admin.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -85,6 +86,11 @@ public class UserController {
     public Result<Boolean> checkLogin(@RequestParam("username") String username, @RequestParam("token") String token){
         Boolean bool = userService.checkLogin(username, token);
         return Results.success(bool);
+    }
+    @DeleteMapping("/user/logout")
+    public Result<Void> logout(@RequestParam("username") String username, @RequestParam("token") String token){
+        userService.logout(username, token);
+        return Results.success();
     }
 
 }
