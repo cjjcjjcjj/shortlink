@@ -120,7 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDo> implements 
          *  Val:Json字符串（用户信息）
          */
         stringRedisTemplate.opsForHash().put("login_" + userDo.getUsername(), uuid, JSON.toJSONString(userDo));
-        stringRedisTemplate.expire("login_" + userDo.getUsername(), 30L, TimeUnit.MINUTES);
+        stringRedisTemplate.expire("login_" + userDo.getUsername(), 30L, TimeUnit.DAYS);
         return new UserLoginRespDTO(uuid);
     }
 
