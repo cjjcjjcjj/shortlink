@@ -4,6 +4,7 @@ package com.nageoffer.shortlink.admin.controller;
 import com.nageoffer.shortlink.admin.common.convention.result.Result;
 import com.nageoffer.shortlink.admin.common.convention.result.Results;
 import com.nageoffer.shortlink.admin.dto.req.ShortLinkGroupSaveReqDTO;
+import com.nageoffer.shortlink.admin.dto.req.ShortLinkGroupUpdateReqDTO;
 import com.nageoffer.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
 import com.nageoffer.shortlink.admin.service.GroupService;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +32,23 @@ public class GroupController {
         return Results.success();
     }
 
+    /**
+     * 查询短链接分组集合
+     * @return
+     */
     @GetMapping("/group")
     public Result<List<ShortLinkGroupRespDTO>>  listGroup(){
         return Results.success(groupService.listGroup());
+    }
+
+    /**
+     * 修改短链接分组名
+     * @param shortLinkGroupUpdateReqDTO
+     * @return
+     */
+    @PutMapping("/group")
+    public Result<Void> upadaGroup(@RequestBody ShortLinkGroupUpdateReqDTO shortLinkGroupUpdateReqDTO){
+        groupService.updateGroup(shortLinkGroupUpdateReqDTO);
+        return Results.success();
     }
 }
