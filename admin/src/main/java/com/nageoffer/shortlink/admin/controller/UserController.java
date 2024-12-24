@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequiredArgsConstructor// lombok
-@RequestMapping("/api/short-link/v1")
+@RequestMapping("/api/short-link/admin/v1")
 public class UserController {
 
     private final UserService userService;
@@ -33,6 +33,11 @@ public class UserController {
         return Results.success(userService.getUserByUsername(username));
     }
 
+    /**
+     * 根据用户名查询用户无脱敏信息
+     * @param username
+     * @return
+     */
     @GetMapping("/actual/user/{username}")
     public Result<UserActualRespDTO> getActualUserByUsername(@PathVariable("username") String username){
         return Results.success(BeanUtil.toBean(userService.getUserByUsername(username), UserActualRespDTO.class));
@@ -71,6 +76,11 @@ public class UserController {
         return Results.success();
     }
 
+    /**
+     * 用户登录
+     * @param userLoginReqDTO
+     * @return
+     */
     @PostMapping("/user/login")
     public Result<UserLoginRespDTO> login(@RequestBody UserLoginReqDTO userLoginReqDTO){
         UserLoginRespDTO userLoginRespDTO = userService.login(userLoginReqDTO);
@@ -87,6 +97,13 @@ public class UserController {
         Boolean bool = userService.checkLogin(username, token);
         return Results.success(bool);
     }
+
+    /**
+     * 用户退出
+     * @param username
+     * @param token
+     * @return
+     */
     @DeleteMapping("/user/logout")
     public Result<Void> logout(@RequestParam("username") String username, @RequestParam("token") String token){
         userService.logout(username, token);

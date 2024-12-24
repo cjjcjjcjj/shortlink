@@ -18,7 +18,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/short-link/v1")
+@RequestMapping("/api/short-link/admin/v1")
 public class GroupController {
     private final GroupService groupService;
 
@@ -64,6 +64,11 @@ public class GroupController {
         return Results.success();
     }
 
+    /**
+     * 短链接分组排序
+     * @param shortLinkGroupSortReqDTOS
+     * @return
+     */
     @PostMapping("/group/sort")
     public Result<Void> sortGroup(@RequestBody List<ShortLinkGroupSortReqDTO> shortLinkGroupSortReqDTOS){
         groupService.sortGroup(shortLinkGroupSortReqDTOS);
