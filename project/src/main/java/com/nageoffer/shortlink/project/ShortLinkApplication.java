@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @MapperScan("com.nageoffer.shortlink.project.dao.mapper")
 public class ShortLinkApplication {
     public static void main(String[] args) {
-
         SpringApplication.run(ShortLinkApplication.class, args);
     }
 }
