@@ -58,4 +58,21 @@
             <artifactId>fastjson2</artifactId>
         </dependency>
     </dependencies>
+<!--    本来只会打包出源码包，下面这个插件能打包出能直接启动的-->
+    <build>
+        <finalName>${project.artifactId</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
