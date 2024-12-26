@@ -20,6 +20,7 @@ import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -74,9 +75,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDo> implements 
         try {
             if (lock.tryLock()){
                 //只给一个锁就行，其他就是尝试，默认有一个会成功注册
-                int inserted = baseMapper.insert(BeanUtil.toBean(userRegisterReqDTO, UserDo.class));
-                if (inserted < 1){
-                    throw new ClientException(USER_SAVE_ERROR);
+                try {
+                    int inserted = baseMapper.insert(BeanUtil.toBean(userRegisterReqDTO, UserDo.class));
+                    if (inserted < 1){
+                        throw new ClientException(USER_SAVE_ERROR);
+                    }
+                }catch (DuplicateKeyException ex){
+                    throw new ClientException(USER_NAME_EXIST);
                 }
                 userRegisterCachePenetrationBloomFilter.add(userRegisterReqDTO.getUsername());
                 //存储用户名，以便在后续的用户注册请求中检查该用户名是否已经被注册
