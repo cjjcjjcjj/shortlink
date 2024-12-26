@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.nageoffer.shortlink.admin.common.biz.User.UserContext;
 import com.nageoffer.shortlink.admin.common.convention.exception.ClientException;
 import com.nageoffer.shortlink.admin.dao.entity.UserDo;
 import com.nageoffer.shortlink.admin.dao.mapper.UserMapper;
@@ -14,6 +15,7 @@ import com.nageoffer.shortlink.admin.dto.req.UserRegisterReqDTO;
 import com.nageoffer.shortlink.admin.dto.req.UserUpdateReqDTO;
 import com.nageoffer.shortlink.admin.dto.resp.UserLoginRespDTO;
 import com.nageoffer.shortlink.admin.dto.resp.UserRespDTO;
+import com.nageoffer.shortlink.admin.service.GroupService;
 import com.nageoffer.shortlink.admin.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBloomFilter;
@@ -44,6 +46,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDo> implements 
     private final RedissonClient redissonClient;
     //看门狗机制
     private final StringRedisTemplate stringRedisTemplate;
+    private final GroupService groupService;
 
     @Override
     public UserRespDTO getUserByUsername(String username) {
@@ -85,12 +88,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDo> implements 
                 }
                 userRegisterCachePenetrationBloomFilter.add(userRegisterReqDTO.getUsername());
                 //存储用户名，以便在后续的用户注册请求中检查该用户名是否已经被注册
+                //这时线程中还没有username，登陆后才有
+                groupService.saveGroup(userRegisterReqDTO.getUsername(), "默认分组");
                 return;
             }
             throw new ClientException(USER_SAVE_ERROR);
         } finally {
             lock.unlock();
         }
+
     }
 
     @Override

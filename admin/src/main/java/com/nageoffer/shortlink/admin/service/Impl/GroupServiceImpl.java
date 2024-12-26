@@ -36,14 +36,19 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
     };
     @Override
     public void saveGroup(String groupName) {
+        saveGroup(UserContext.getUsername(), groupName);
+    }
+
+    @Override
+    public void saveGroup(String username, String groupName) {
         String gid;
         do {
             gid = RandomGenerator.generateRandom();
-        } while (!availableGid(gid));
+        } while (!availableGid(username, gid));
         GroupDO groupDO = GroupDO.builder()
                 .name(groupName)
                 .gid(gid)
-                .username(UserContext.getUsername())
+                .username(username)
                 .sortOrder(0)
                 .build();
         //如何保证不重复
@@ -112,12 +117,12 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
         });
     }
 
-    private boolean availableGid(String gid){
+    private boolean availableGid(String username, String gid){
         LambdaQueryWrapper<GroupDO> queryWrapper = Wrappers.lambdaQuery(GroupDO.class)
                 .eq(GroupDO::getGid, gid)
                 .eq(GroupDO::getDelFlag, 0)
                 // TODO 设置用户名
-                .eq(GroupDO::getUsername, UserContext.getUsername());
+                .eq(GroupDO::getUsername, Optional.ofNullable(username).orElse(UserContext.getUsername()));
         GroupDO avalibaleGroupFlag = baseMapper.selectOne(queryWrapper);
         return avalibaleGroupFlag == null;
     }
