@@ -35,7 +35,12 @@ public class ShortLinkController {
         return Results.success(shortLinkService.createShortLink(shortLinkCreateReqDTO));
     }
 
-    @PutMapping("/update")
+    /**
+     * 修改短链接
+     * @param shortLinkUpdateReqDTO
+     * @return
+     */
+    @PostMapping("/update")
     public Result<Void> updataShortLink(ShortLinkUpdateReqDTO shortLinkUpdateReqDTO){
         shortLinkService.updateShortLink(shortLinkUpdateReqDTO);
         return Results.success();

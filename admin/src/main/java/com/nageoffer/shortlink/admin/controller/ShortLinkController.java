@@ -3,9 +3,11 @@ package com.nageoffer.shortlink.admin.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 
 import com.nageoffer.shortlink.admin.common.convention.result.Result;
+import com.nageoffer.shortlink.admin.common.convention.result.Results;
 import com.nageoffer.shortlink.admin.remote.ShortLinkRemoteService;
 import com.nageoffer.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
 import com.nageoffer.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
+import com.nageoffer.shortlink.admin.remote.dto.req.ShortLinkUpdateReqDTO;
 import com.nageoffer.shortlink.admin.remote.dto.resp.ShortLinkCreateRespDTO;
 import com.nageoffer.shortlink.admin.remote.dto.resp.ShortLinkPageRespDTO;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,17 @@ public class ShortLinkController {
     @PostMapping("/create")
     public Result<ShortLinkCreateRespDTO> createShortLink(@RequestBody ShortLinkCreateReqDTO shortLinkCreateReqDTO){
         return shortLinkRemoteService.createShortLink(shortLinkCreateReqDTO);
+    }
+
+    /**
+     * 修改短链接
+     * @param shortLinkUpdateReqDTO
+     * @return
+     */
+    @PostMapping("/update")
+    public Result<Void> updataShortLink(ShortLinkUpdateReqDTO shortLinkUpdateReqDTO){
+        shortLinkRemoteService.updateShortLink(shortLinkUpdateReqDTO);
+        return Results.success();
     }
 
     /**
