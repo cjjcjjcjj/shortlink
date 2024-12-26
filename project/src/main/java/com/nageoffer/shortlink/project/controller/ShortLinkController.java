@@ -5,6 +5,7 @@ import com.nageoffer.shortlink.project.common.convention.result.Result;
 import com.nageoffer.shortlink.project.common.convention.result.Results;
 import com.nageoffer.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import com.nageoffer.shortlink.project.dto.req.ShortLinkPageReqDTO;
+import com.nageoffer.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
 import com.nageoffer.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import com.nageoffer.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import com.nageoffer.shortlink.project.dto.resp.ShortLinkPageRespDTO;
@@ -32,6 +33,12 @@ public class ShortLinkController {
     @PostMapping("/create")
     public Result<ShortLinkCreateRespDTO> createShortLink(@RequestBody ShortLinkCreateReqDTO shortLinkCreateReqDTO){
         return Results.success(shortLinkService.createShortLink(shortLinkCreateReqDTO));
+    }
+
+    @PutMapping("/update")
+    public Result<Void> updataShortLink(ShortLinkUpdateReqDTO shortLinkUpdateReqDTO){
+        shortLinkService.updateShortLink(shortLinkUpdateReqDTO);
+        return Results.success();
     }
 
     /**
