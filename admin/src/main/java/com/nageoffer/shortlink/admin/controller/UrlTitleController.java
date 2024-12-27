@@ -23,6 +23,7 @@ public class UrlTitleController {
      * @param url
      * @return
      */
+    //TODO 获取标题超时？
     @GetMapping("/api/short-link/admin/v1/title")
     public Result<String> getTitleByUrl(@RequestParam("url") String url){
         return shortLinkRemoteService.getTitleByUrl(url);
