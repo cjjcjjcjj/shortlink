@@ -43,6 +43,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static com.nageoffer.shortlink.project.common.constant.RedisKeyConstant.*;
+import static com.nageoffer.shortlink.project.toolkit.LinkUtil.getLinkCacheValidTime;
 
 /**
  * 短链接接口实现层
@@ -151,6 +152,12 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 throw new ServiceException("短链接生成重复");
             }
         }
+        stringRedisTemplate.opsForValue().set(
+                fullShortUrl,
+                shortLinkCreateReqDTO.getOriginUrl(),
+                getLinkCacheValidTime(shortLinkCreateReqDTO.getValidDate()),
+                TimeUnit.MILLISECONDS
+        );
         shortUriCreateCachePenetrationBloomFilter.add(fullShortUrl);
         return ShortLinkCreateRespDTO.builder()
                 //测试阶段直接写死，域名管理后面会有
