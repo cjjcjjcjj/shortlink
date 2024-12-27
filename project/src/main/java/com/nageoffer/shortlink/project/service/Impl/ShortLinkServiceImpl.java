@@ -75,10 +75,12 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         //缓存穿透
         boolean contains = shortUriCreateCachePenetrationBloomFilter.contains(fullShortUrl);
         if (!contains){
+            response.sendRedirect("/page/notfound");
             return;
         }
         String gotoIsNullShortLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl));
         if (StrUtil.isNotBlank(gotoIsNullShortLink)){
+            response.sendRedirect("/page/notfound");
             return;
         }
         //用户只能传短链接，没法传gid，需要一个路由表，后面改查redis了，避免查数据库
@@ -97,6 +99,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 if (shortLinkGotoDO == null){
                     // TODO 风控
                     stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl), "-", 30, TimeUnit.MINUTES);
+                    response.sendRedirect("/page/notfound");
                     return;
                 }
                 LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
@@ -109,6 +112,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                     //判断是否过期
                     if (shortLinkDO.getValidDate() != null && shortLinkDO.getValidDate().before(new Date())){
                         stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl), "-", 30, TimeUnit.MINUTES);
+                        response.sendRedirect("/page/notfound");
                         return;
                     }
                     stringRedisTemplate.opsForValue().set(
