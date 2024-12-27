@@ -10,6 +10,8 @@ import com.nageoffer.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import com.nageoffer.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import com.nageoffer.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import com.nageoffer.shortlink.project.service.ShortLinkService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,17 +22,28 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor// lombok
-@RequestMapping("/api/short-link/v1")
 public class ShortLinkController {
 
     private final ShortLinkService shortLinkService;
+
+    /**
+     * 短链接跳转
+     * @param shortUri
+     * @param request
+     * @param response
+     */
+    @GetMapping("/{short-uri}")
+    public void restoreUrl(@PathVariable("short-uri") String shortUri, HttpServletRequest request, HttpServletResponse response){
+//        Springboot3.0将原来javax.servlet转变为了jakarta.servlet. 原来的HttpServletReq / Resp 可以使用HttpServletReq / Resp Wrapper平替
+        shortLinkService.restore(shortUri, request, response);
+    }
 
     /**
      * 创建短链接
      * @param shortLinkCreateReqDTO
      * @return
      */
-    @PostMapping("/create")
+    @PostMapping("/api/short-link/v1/create")
     public Result<ShortLinkCreateRespDTO> createShortLink(@RequestBody ShortLinkCreateReqDTO shortLinkCreateReqDTO){
         return Results.success(shortLinkService.createShortLink(shortLinkCreateReqDTO));
     }
@@ -40,7 +53,7 @@ public class ShortLinkController {
      * @param shortLinkUpdateReqDTO
      * @return
      */
-    @PostMapping("/update")
+    @PostMapping("/api/short-link/v1/update")
     public Result<Void> updataShortLink(@RequestBody ShortLinkUpdateReqDTO shortLinkUpdateReqDTO){
         shortLinkService.updateShortLink(shortLinkUpdateReqDTO);
         return Results.success();
@@ -51,7 +64,7 @@ public class ShortLinkController {
      * @param shortLinkPageReqDTO
      * @return
      */
-    @GetMapping("/page")
+    @GetMapping("/api/short-link/v1/page")
     public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkPageReqDTO shortLinkPageReqDTO) {
         return Results.success(shortLinkService.pageShortLink(shortLinkPageReqDTO));
     }
@@ -61,7 +74,7 @@ public class ShortLinkController {
      * 查询短链接分组内数量
      * @return
      */
-    @GetMapping("/count")
+    @GetMapping("/api/short-link/v1/count")
     public Result<List<ShortLinkGroupCountQueryRespDTO>> listGroupShortLinkCount(@RequestParam List<String> gids){
         return Results.success(shortLinkService.listGroupShortLinkCount(gids));
     }
