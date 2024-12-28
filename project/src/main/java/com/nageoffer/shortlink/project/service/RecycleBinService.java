@@ -3,10 +3,7 @@ package com.nageoffer.shortlink.project.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.nageoffer.shortlink.project.dao.entity.ShortLinkDO;
-import com.nageoffer.shortlink.project.dto.req.RecycleBinRecoverReqDTO;
-import com.nageoffer.shortlink.project.dto.req.RecycleBinSaveReqDTO;
-import com.nageoffer.shortlink.project.dto.req.ShortLinkPageReqDTO;
-import com.nageoffer.shortlink.project.dto.req.ShortLinkRecycleBinPageReqDTO;
+import com.nageoffer.shortlink.project.dto.req.*;
 import com.nageoffer.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 
 /**
@@ -32,4 +29,11 @@ public interface RecycleBinService extends IService<ShortLinkDO> {
      * @param requestParma
      */
     void recoverRecycleBin(RecycleBinRecoverReqDTO requestParma);
+
+    /**
+     * 彻底删除回收站短链接
+     * @param requestParma
+     * @return
+     */
+    void removeRecycleBin(RecycleBinRemoveReqDTO requestParma);
 }
