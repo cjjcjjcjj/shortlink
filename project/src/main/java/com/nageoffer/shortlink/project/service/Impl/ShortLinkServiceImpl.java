@@ -56,6 +56,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.nageoffer.shortlink.project.common.constant.RedisKeyConstant.*;
+import static com.nageoffer.shortlink.project.toolkit.LinkUtil.getIp;
 import static com.nageoffer.shortlink.project.toolkit.LinkUtil.getLinkCacheValidTime;
 
 /**
@@ -144,6 +145,13 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         }
     }
 
+    /**
+     * 统计短链接数据
+     * @param fullShortUrl
+     * @param gid
+     * @param request
+     * @param response
+     */
     private void shortLinkStats(String fullShortUrl, String gid, HttpServletRequest request, HttpServletResponse response){
         if (StrUtil.isBlank(gid)){
             LambdaQueryWrapper<ShortLinkGotoDO> linkGotoQueryWrapper = Wrappers.lambdaQuery(ShortLinkGotoDO.class)
@@ -153,6 +161,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         }
         Cookie[] cookies = request.getCookies();
         AtomicBoolean uvFirstFlag = new AtomicBoolean();
+        AtomicBoolean uipFirstFlag = new AtomicBoolean();
         //TODO 写法注意
         Date date = new Date();
         Week week = DateUtil.dayOfWeekEnum(date);
@@ -167,6 +176,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 uvCookie.setPath(fullShortUrl.substring(fullShortUrl.indexOf("/")));
                 response.addCookie(uvCookie);
                 uvFirstFlag.set(Boolean.TRUE);
+                //存储访问过的nv cookie
                 stringRedisTemplate.opsForSet().add("short-link:stats:uv:" + fullShortUrl, uv);
             };
             if (ArrayUtil.isNotEmpty(cookies)){
@@ -175,15 +185,18 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                         .findFirst()
                         .map(Cookie::getValue)
                         .ifPresentOrElse(each -> {
-                            Long added = stringRedisTemplate.opsForSet().add("short-link:stats:uv:" + fullShortUrl, each);
-                            uvFirstFlag.set(added != null && added > 0L);
+                            Long uvAdded = stringRedisTemplate.opsForSet().add("short-link:stats:uv:" + fullShortUrl, each);
+                            uvFirstFlag.set(uvAdded != null && uvAdded > 0L);
                         }, addResponseCookieTask);
             } else {
                 addResponseCookieTask.run();
             }
+            String uip = getIp(request);
+            Long uipAdded = stringRedisTemplate.opsForSet().add("short-link:stats:uip:" + fullShortUrl, uip);
+            uipFirstFlag.set(uipAdded != null && uipAdded > 0L);
             LinkAccessStatsDO linkAccessStatsDO = LinkAccessStatsDO.builder()
                     .pv(1).uv(uvFirstFlag.get() ? 1 : 0)
-                    .uip(1).hour(hour)
+                    .uip(uipFirstFlag.get() ? 1 : 0).hour(hour)
                     .weekday(weekValue).fullShortUrl(fullShortUrl)
                     .gid(gid).date(date)
                     .build();
