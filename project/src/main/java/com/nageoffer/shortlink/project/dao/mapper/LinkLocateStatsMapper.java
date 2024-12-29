@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.nageoffer.shortlink.project.dao.entity.LinkLocateStatsDO;
 import org.apache.ibatis.annotations.Insert;
 
+/**
+ * 短链接地区监控持久层
+ */
 public interface LinkLocateStatsMapper extends BaseMapper<LinkLocateStatsDO> {
 
 

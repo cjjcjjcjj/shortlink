@@ -19,14 +19,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.nageoffer.shortlink.project.common.convention.exception.ClientException;
 import com.nageoffer.shortlink.project.common.convention.exception.ServiceException;
 import com.nageoffer.shortlink.project.common.enums.VailDateTypeEnum;
-import com.nageoffer.shortlink.project.dao.entity.LinkAccessStatsDO;
-import com.nageoffer.shortlink.project.dao.entity.LinkLocateStatsDO;
-import com.nageoffer.shortlink.project.dao.entity.ShortLinkDO;
-import com.nageoffer.shortlink.project.dao.entity.ShortLinkGotoDO;
-import com.nageoffer.shortlink.project.dao.mapper.LinkAccessStatsMapper;
-import com.nageoffer.shortlink.project.dao.mapper.LinkLocateStatsMapper;
-import com.nageoffer.shortlink.project.dao.mapper.ShortLinkGotoMapper;
-import com.nageoffer.shortlink.project.dao.mapper.ShortLinkMapper;
+import com.nageoffer.shortlink.project.dao.entity.*;
+import com.nageoffer.shortlink.project.dao.mapper.*;
 import com.nageoffer.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import com.nageoffer.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import com.nageoffer.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
@@ -63,8 +57,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.nageoffer.shortlink.project.common.constant.RedisKeyConstant.*;
 import static com.nageoffer.shortlink.project.common.constant.ShortLinkConstant.AMAP_REMOTE_URL;
-import static com.nageoffer.shortlink.project.toolkit.LinkUtil.getIp;
-import static com.nageoffer.shortlink.project.toolkit.LinkUtil.getLinkCacheValidTime;
+import static com.nageoffer.shortlink.project.toolkit.LinkUtil.*;
 
 /**
  * 短链接接口实现层
@@ -85,6 +78,8 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final LinkAccessStatsMapper linkAccessStatsMapper;
 
     private final LinkLocateStatsMapper linkLocateStatsMapper;
+
+    private final LinkOsStatsMapper linkOsStatsMapper;
 
     @Value("${short-link.stats.locate.AmMap-key}")
     private String AMapKey;
@@ -180,7 +175,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         int weekValue = week.getIso8601Value();
         int hour = DateUtil.hour(date, true);
         try {
-            //统计uv
+            //统计pv，uv，uip
             Runnable addResponseCookieTask = () -> {
                 String uv = UUID.fastUUID().toString();
                 Cookie uvCookie = new Cookie("uv", uv);
@@ -206,7 +201,6 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             String uip = getIp(request);
             Long uipAdded = stringRedisTemplate.opsForSet().add("short-link:stats:uip:" + fullShortUrl, uip);
             uipFirstFlag.set(uipAdded != null && uipAdded > 0L);
-            //统计pv，uv，uip
             LinkAccessStatsDO linkAccessStatsDO = LinkAccessStatsDO.builder()
                     .pv(1).uv(uvFirstFlag.get() ? 1 : 0)
                     .uip(uipFirstFlag.get() ? 1 : 0).hour(hour)
@@ -238,6 +232,16 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                         .cnt(1)
                         .build();
                 linkLocateStatsMapper.shortLinkLocateStats(linkLocateStatsDO);
+                //统计操作系统
+                String os = getOs(request);
+                LinkOsStatsDO linkOsStatsDO = LinkOsStatsDO.builder()
+                        .gid(gid)
+                        .fullShortUrl(fullShortUrl)
+                        .date(date)
+                        .cnt(1)
+                        .os(os)
+                        .build();
+                linkOsStatsMapper.shortLinOsStats(linkOsStatsDO);
             }
         } catch (Throwable ex) {
             log.error("短链接访问量统计异常", ex);
