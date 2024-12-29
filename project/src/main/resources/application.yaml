@@ -26,3 +26,8 @@ mybatis-plus:
       logic-not-delete-value: 0
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+short-link:
+  stats:
+    locate:
+     AmMap-key: bdf95945d9e27a37348121955fe5686a

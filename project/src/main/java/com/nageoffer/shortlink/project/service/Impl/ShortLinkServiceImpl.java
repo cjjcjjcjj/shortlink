@@ -7,6 +7,9 @@ import cn.hutool.core.lang.UUID;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpUtil;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -17,9 +20,11 @@ import com.nageoffer.shortlink.project.common.convention.exception.ClientExcepti
 import com.nageoffer.shortlink.project.common.convention.exception.ServiceException;
 import com.nageoffer.shortlink.project.common.enums.VailDateTypeEnum;
 import com.nageoffer.shortlink.project.dao.entity.LinkAccessStatsDO;
+import com.nageoffer.shortlink.project.dao.entity.LinkLocateStatsDO;
 import com.nageoffer.shortlink.project.dao.entity.ShortLinkDO;
 import com.nageoffer.shortlink.project.dao.entity.ShortLinkGotoDO;
 import com.nageoffer.shortlink.project.dao.mapper.LinkAccessStatsMapper;
+import com.nageoffer.shortlink.project.dao.mapper.LinkLocateStatsMapper;
 import com.nageoffer.shortlink.project.dao.mapper.ShortLinkGotoMapper;
 import com.nageoffer.shortlink.project.dao.mapper.ShortLinkMapper;
 import com.nageoffer.shortlink.project.dto.req.ShortLinkCreateReqDTO;
@@ -44,6 +49,7 @@ import org.jsoup.nodes.Element;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -56,6 +62,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.nageoffer.shortlink.project.common.constant.RedisKeyConstant.*;
+import static com.nageoffer.shortlink.project.common.constant.ShortLinkConstant.AMAP_REMOTE_URL;
 import static com.nageoffer.shortlink.project.toolkit.LinkUtil.getIp;
 import static com.nageoffer.shortlink.project.toolkit.LinkUtil.getLinkCacheValidTime;
 
@@ -76,6 +83,11 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final RedissonClient redissonClient;
 
     private final LinkAccessStatsMapper linkAccessStatsMapper;
+
+    private final LinkLocateStatsMapper linkLocateStatsMapper;
+
+    @Value("${short-link.stats.locate.AmMap-key}")
+    private String AMapKey;
 
     @SneakyThrows
     @Override
@@ -194,6 +206,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             String uip = getIp(request);
             Long uipAdded = stringRedisTemplate.opsForSet().add("short-link:stats:uip:" + fullShortUrl, uip);
             uipFirstFlag.set(uipAdded != null && uipAdded > 0L);
+            //统计pv，uv，uip
             LinkAccessStatsDO linkAccessStatsDO = LinkAccessStatsDO.builder()
                     .pv(1).uv(uvFirstFlag.get() ? 1 : 0)
                     .uip(uipFirstFlag.get() ? 1 : 0).hour(hour)
@@ -201,6 +214,31 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                     .gid(gid).date(date)
                     .build();
             linkAccessStatsMapper.shortLinkStats(linkAccessStatsDO);
+            //统计地区数量
+            HashMap<String, Object> locateParamMap = new HashMap<>();
+            locateParamMap.put("key", AMapKey);
+            locateParamMap.put("ip", uip);
+            String locateResultStr = HttpUtil.get(AMAP_REMOTE_URL, locateParamMap);
+            JSONObject locateResultObject = JSON.parseObject(locateResultStr);
+            LinkLocateStatsDO linkLocateStatsDO;
+            String infocode = locateResultObject.getString("infocode");
+            if (StrUtil.isNotBlank(infocode) && StrUtil.equals(infocode, "10000")){
+                String province = locateResultObject.getString("province");
+                String city = locateResultObject.getString("city");
+                String adcode = locateResultObject.getString("adcode");
+                boolean unknownFlag = StrUtil.equals(province, "[]");
+                linkLocateStatsDO = LinkLocateStatsDO.builder()
+                        .date(date)
+                        .fullShortUrl(fullShortUrl)
+                        .gid(gid)
+                        .province(unknownFlag ? "未知" : province)
+                        .city(unknownFlag ? "未知" : city)
+                        .adcode(unknownFlag ? "未知" : adcode)
+                        .country("中国")
+                        .cnt(1)
+                        .build();
+                linkLocateStatsMapper.shortLinkLocateStats(linkLocateStatsDO);
+            }
         } catch (Throwable ex) {
             log.error("短链接访问量统计异常", ex);
         }
