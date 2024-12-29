@@ -73,20 +73,15 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final RBloomFilter<String> shortUriCreateCachePenetrationBloomFilter;
 //    private final ShortLinkMapper shortLinkMapper;
     private final ShortLinkGotoMapper shortLinkGotoMapper;
-
     private final StringRedisTemplate stringRedisTemplate;
-
     private final RedissonClient redissonClient;
-
     private final LinkAccessStatsMapper linkAccessStatsMapper;
-
     private final LinkLocateStatsMapper linkLocateStatsMapper;
-
     private final LinkOsStatsMapper linkOsStatsMapper;
-
     private final LinkBrowserStatsMapper linkBrowserStatsMapper;
-
     private final LinkAccessLogsMapper linkAccessLogsMapper;
+    private final LinkDeviceStatsMapper linkDeviceStatsMapper;
+    private final LinkNetworkStatsMapper linkNetworkStatsMapper;
 
     @Value("${short-link.stats.locate.AmMap-key}")
     private String AMapKey;
@@ -271,6 +266,27 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                         .fullShortUrl(fullShortUrl)
                         .build();
                 linkAccessLogsMapper.insert(linkAccessLogsDO);
+                //监控统计设备
+                String device = getDevice(request);
+                LinkDeviceStatsDO linkDeviceStatsDO = LinkDeviceStatsDO.builder()
+                        .device(device)
+                        .cnt(1)
+                        .gid(gid)
+                        .fullShortUrl(fullShortUrl)
+                        .date(date)
+                        .build();
+                linkDeviceStatsMapper.shortLinkDeviceStats(linkDeviceStatsDO);
+
+                //监控统计网络
+                String network = getNetwork(request);
+                LinkNetworkStatsDO linkNetworkStatsDO = LinkNetworkStatsDO.builder()
+                        .network(network)
+                        .cnt(1)
+                        .gid(gid)
+                        .fullShortUrl(fullShortUrl)
+                        .date(date)
+                        .build();
+                linkNetworkStatsMapper.shortLinkNetworkStats(linkNetworkStatsDO);
             }
         } catch (Throwable ex) {
             log.error("短链接访问量统计异常", ex);

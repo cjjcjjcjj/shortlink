@@ -72,4 +72,31 @@ public class LinkUtil {
         return client.userAgent.family; // 返回浏览器类型
     }
 
+    /**
+     * 获取用户访问网络
+     *
+     * @param request 请求
+     * @return 访问设备
+     */
+    public static String getNetwork(HttpServletRequest request) {
+        String Ip = getIp(request);
+        // 这里简单判断IP地址范围，您可能需要更复杂的逻辑
+        // 例如，通过调用IP地址库或调用第三方服务来判断网络类型
+        return Ip.startsWith("192.168.") || Ip.startsWith("10.") ? "WIFI" : "Mobile";
+    }
+
+    /**
+     * 获取用户访问设备
+     *
+     * @param request 请求
+     * @return 访问设备
+     */
+    public static String getDevice(HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent.toLowerCase().contains("mobile")) {
+            return "Mobile";
+        }
+        return "PC";
+    }
+
 }
