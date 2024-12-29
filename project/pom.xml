@@ -67,9 +67,16 @@
             <version>${jsoup.version}</version>
         </dependency>
 
+<!--        拿来提取浏览器和操作系统的-->
+        <dependency>
+            <groupId>com.github.ua-parser</groupId>
+            <artifactId>uap-java</artifactId>
+            <version>1.5.2</version>
+        </dependency>
     </dependencies>
+
     <build>
-        <finalName>${project.artifactId</finalName>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

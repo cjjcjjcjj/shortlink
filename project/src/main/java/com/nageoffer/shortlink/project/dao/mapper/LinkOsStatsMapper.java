@@ -19,7 +19,7 @@ public interface LinkOsStatsMapper extends BaseMapper<LinkOsStatsDO> {
             INSERT INTO t_link_os_stats (full_short_url, gid, date, cnt, os, create_time, update_time, del_flag)
         VALUES (#{fullShortUrl}, #{gid}, #{date}, #{cnt}, #{os}, NOW(), NOW(), 0)
         ON DUPLICATE KEY UPDATE
-           os = os + #{os}
+           cnt = cnt + #{cnt}
 """)
     void shortLinOsStats(LinkOsStatsDO linkOsStatsDO);
 }
