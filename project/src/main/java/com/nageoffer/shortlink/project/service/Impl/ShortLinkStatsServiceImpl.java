@@ -214,8 +214,9 @@ public class ShortLinkStatsServiceImpl implements ShortLinkStatsService {
         List<Map<String, Object>> uvTypeList = linkAccessLogsMapper.selectUvTypeByUsers(
                 requestParam.getGid(),
                 requestParam.getFullShortUrl(),
-                requestParam.getStartDate(),
-                requestParam.getEndDate(),
+                //TODO 当天访问还是有点查不到
+                requestParam.getStartDate() + " 00:00:00",
+                requestParam.getEndDate() + " 23:59:59",
                 userAccessLogsList);
         actualResult.getRecords().forEach(each ->{
                     String uvType = uvTypeList.stream()
