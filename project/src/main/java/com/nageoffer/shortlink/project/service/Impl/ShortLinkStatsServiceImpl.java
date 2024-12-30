@@ -1,11 +1,14 @@
 package com.nageoffer.shortlink.project.service.Impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.nageoffer.shortlink.project.dao.entity.LinkAccessStatsDO;
-import com.nageoffer.shortlink.project.dao.entity.LinkDeviceStatsDO;
-import com.nageoffer.shortlink.project.dao.entity.LinkLocateStatsDO;
-import com.nageoffer.shortlink.project.dao.entity.LinkNetworkStatsDO;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.nageoffer.shortlink.project.dao.entity.*;
 import com.nageoffer.shortlink.project.dao.mapper.*;
+import com.nageoffer.shortlink.project.dto.req.ShortLinkStatsAccessRecordReqDTO;
 import com.nageoffer.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import com.nageoffer.shortlink.project.dto.resp.*;
 import com.nageoffer.shortlink.project.service.ShortLinkStatsService;
@@ -31,6 +34,8 @@ public class ShortLinkStatsServiceImpl implements ShortLinkStatsService {
 
     @Override
     public ShortLinkStatsRespDTO oneShortLinkStats(ShortLinkStatsReqDTO requestParam) {
+        //TODO 这部分代码没看
+
         // 基础访问详情
         List<LinkAccessStatsDO> listStatsByShortLink = linkAccessStatsMapper.listStatsByShortLink(requestParam);
         // 地区访问详情（仅国内）
@@ -181,5 +186,46 @@ public class ShortLinkStatsServiceImpl implements ShortLinkStatsService {
                 .deviceStats(deviceStats)
                 .networkStats(networkStats)
                 .build();
+    }
+
+    @Override
+    public IPage<ShortLinkStatsAccessRecordRespDTO> oneShortLinkStatsAccessRecord(ShortLinkStatsAccessRecordReqDTO requestParam) {
+        String gid = requestParam.getGid();
+        String fullShortUrl = requestParam.getFullShortUrl();
+        LambdaQueryWrapper<LinkAccessLogsDO> queryWrapper = Wrappers.lambdaQuery(LinkAccessLogsDO.class)
+                .eq(LinkAccessLogsDO::getGid, gid)
+                .eq(LinkAccessLogsDO::getFullShortUrl, fullShortUrl)
+                .between(LinkAccessLogsDO::getCreateTime, requestParam.getStartDate(), requestParam.getEndDate())
+                .eq(LinkAccessLogsDO::getDelFlag, 0)
+                .orderByDesc(LinkAccessLogsDO::getCreateTime);
+        IPage<LinkAccessLogsDO> linkAccessLogsDOIPage = linkAccessLogsMapper.selectPage(requestParam, queryWrapper);
+        IPage<ShortLinkStatsAccessRecordRespDTO> actualResult = linkAccessLogsDOIPage.convert(each ->
+                BeanUtil.toBean(each, ShortLinkStatsAccessRecordRespDTO.class)
+        );
+        List<String> userAccessLogsList = actualResult.getRecords().stream()
+                .map(ShortLinkStatsAccessRecordRespDTO::getUser)
+                .toList();
+        if (CollectionUtil.isEmpty(userAccessLogsList)) {
+            return actualResult;
+        }
+        //已解决分页查询结果的total跟实际条目不符情况，视频的第二次查询没有使用requestParam作为入参，
+        // 由于requestParam继承了Page类，所以如果继续使用requestParam作为数据库查询入参，会被默认当成分页查询，
+        // 会覆盖前面的分页查询结果，应该重新创建一个参数与requestParam一样的类，不继承Page，然后再进行数据库查询。
+        List<Map<String, Object>> uvTypeList = linkAccessLogsMapper.selectUvTypeByUsers(
+                requestParam.getGid(),
+                requestParam.getFullShortUrl(),
+                requestParam.getStartDate(),
+                requestParam.getEndDate(),
+                userAccessLogsList);
+        actualResult.getRecords().forEach(each ->{
+                    String uvType = uvTypeList.stream()
+                                    .filter(item -> Objects.equals(each.getUser(), item.get("user")))
+                                    .findFirst()
+                                    .map(item -> item.get("uvType"))
+                                    .map(Object::toString)
+                                    .orElse("旧访客");
+                    each.setUvType(uvType);
+        });
+        return actualResult;
     }
 }
