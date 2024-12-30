@@ -50,7 +50,7 @@ public class ShortLinkController {
     }
 
     /**
-     * 分页查询回收站
+     * 分页查询短链接
      * @param shortLinkPageReqDTO
      * @return
      */
