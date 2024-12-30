@@ -170,7 +170,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         }
         Cookie[] cookies = request.getCookies();
         AtomicBoolean uvFirstFlag = new AtomicBoolean();
-        AtomicBoolean uipFirstFlag = new AtomicBoolean();
+        Boolean uipFirstFlag;
         //TODO 写法注意
         Date date = new Date();
         Week week = DateUtil.dayOfWeekEnum(date);
@@ -204,10 +204,10 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             }
             String uip = getIp(request);
             Long uipAdded = stringRedisTemplate.opsForSet().add("short-link:stats:uip:" + fullShortUrl, uip);
-            uipFirstFlag.set(uipAdded != null && uipAdded > 0L);
+            uipFirstFlag = uipAdded != null && uipAdded > 0L;
             LinkAccessStatsDO linkAccessStatsDO = LinkAccessStatsDO.builder()
                     .pv(1).uv(uvFirstFlag.get() ? 1 : 0)
-                    .uip(uipFirstFlag.get() ? 1 : 0).hour(hour)
+                    .uip(uipFirstFlag ? 1 : 0).hour(hour)
                     .weekday(weekValue).fullShortUrl(fullShortUrl)
                     .gid(gid).date(date)
                     .build();
@@ -313,6 +313,9 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 .validDateType(shortLinkCreateReqDTO.getValidDateType())
                 .validDate(shortLinkCreateReqDTO.getValidDate())
                 .describe(shortLinkCreateReqDTO.getDescribe())
+                .totalPv(1)
+                .totalUv(1)
+                .totalUip(1)
                 .shortUri(shortLinkSuffix)
                 .enableStatus(0)
                 .fullShortUrl(fullShortUrl)
