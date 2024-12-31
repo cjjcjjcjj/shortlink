@@ -3,6 +3,7 @@ package com.nageoffer.shortlink.project.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.nageoffer.shortlink.project.dao.entity.LinkLocateStatsDO;
 import com.nageoffer.shortlink.project.dao.entity.LinkOsStatsDO;
+import com.nageoffer.shortlink.project.dto.req.ShortLinkGroupStatsReqDTO;
 import com.nageoffer.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Select;
@@ -43,4 +44,19 @@ public interface LinkOsStatsMapper extends BaseMapper<LinkOsStatsDO> {
             "GROUP BY " +
             "    full_short_url, gid, os;")
     List<HashMap<String, Object>> listOsStatsByShortLink(ShortLinkStatsReqDTO requestParam);
+
+    /**
+     * 根据分组获取指定日期内操作系统监控数据
+     */
+    @Select("SELECT " +
+            "    os, " +
+            "    SUM(cnt) AS count " +
+            "FROM " +
+            "    t_link_os_stats " +
+            "WHERE " +
+            "    gid = #{gid} " +
+            "    AND date BETWEEN #{startDate} and #{endDate} " +
+            "GROUP BY " +
+            "    gid, os;")
+    List<HashMap<String, Object>> listOsStatsByGroup(ShortLinkGroupStatsReqDTO requestParam);
 }
