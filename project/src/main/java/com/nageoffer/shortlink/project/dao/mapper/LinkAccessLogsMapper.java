@@ -85,4 +85,17 @@ public interface LinkAccessLogsMapper extends BaseMapper<LinkAccessLogsDO> {
             @Param("endDate") String endDate,
             @Param("userAccessLogsList") List<String> userAccessLogsList
     );
+
+    /**
+     * 根据短链接获取指定日期内pv，uv，uip
+     * @param requestParam
+     * @return
+     */
+    @Select("""
+select COUNT(user) as pv, COUNT(DISTINCT user) as uv, COUNT(DISTINCT ip) as uip from t_link_access_logs
+where full_short_url = #{fullShortUrl} AND gid = #{gid} AND
+create_time BETWEEN CONCAT(#{startDate},' 00:00:00') AND CONCAT(#{endDate},' 23:59:59')
+GROUP By full_short_url, gid;
+""")
+    LinkAccessStatsDO findPvUvUipStatsByShortLink(ShortLinkStatsReqDTO requestParam);
 }
