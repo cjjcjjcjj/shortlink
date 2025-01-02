@@ -653,7 +653,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             //改变原始的避免冲突 这里的处理 加毫秒值目的就是生成不同的短链接，在多线程情况下有可能进入到catch块里，
             // 因为这时还没加到布隆过滤器里面，就误判为不存在，但是数据库中其实已经插入进去了，所以在异常块里直接把完整的短链接放到布隆过滤器里面就好了
             shortUri = HashUtil.hashToBase62(originUrl);
-            if (!shortUriCreateCachePenetrationBloomFilter.contains(shortLinkCreateReqDTO.getDomain() + '/' + shortUri)){
+            if (!shortUriCreateCachePenetrationBloomFilter.contains(createShortLinkDefaultDomain + '/' + shortUri)){
                 break;
             }else {
                 customGenerateCount++;
