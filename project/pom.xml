@@ -73,6 +73,7 @@
             <artifactId>uap-java</artifactId>
             <version>${ua-parser.version}</version>
         </dependency>
+
     </dependencies>
 
     <build>

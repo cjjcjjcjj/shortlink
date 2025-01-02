@@ -57,6 +57,12 @@
             <groupId>com.alibaba.fastjson2</groupId>
             <artifactId>fastjson2</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>${easyexcel.version}</version>
+        </dependency>
     </dependencies>
 <!--    本来只会打包出源码包，下面这个插件能打包出能直接启动的-->
     <build>
