@@ -27,7 +27,7 @@ public interface LinkOsStatsMapper extends BaseMapper<LinkOsStatsDO> {
         ON DUPLICATE KEY UPDATE
            cnt = cnt + #{cnt}
 """)
-    void shortLinOsStats(LinkOsStatsDO linkOsStatsDO);
+    void shortLinkOsStats(LinkOsStatsDO linkOsStatsDO);
 
     /**
      * 根据短链接获取指定日期内操作系统监控数据

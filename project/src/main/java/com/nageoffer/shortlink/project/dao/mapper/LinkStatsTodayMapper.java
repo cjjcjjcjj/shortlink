@@ -22,5 +22,5 @@ public interface LinkStatsTodayMapper extends BaseMapper<LinkStatsTodayDO> {
            today_pv = today_pv + #{todayPv},
            today_uip = today_uip;
 """)
-    void shortLinTodayStats(LinkStatsTodayDO linkStatsTodayDO);
+    void shortLinkTodayStats(LinkStatsTodayDO linkStatsTodayDO);
 }
