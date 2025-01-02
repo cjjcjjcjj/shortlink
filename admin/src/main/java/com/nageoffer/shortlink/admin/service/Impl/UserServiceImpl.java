@@ -1,6 +1,7 @@
 package com.nageoffer.shortlink.admin.service.Impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -117,9 +118,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDo> implements 
         if (userDo == null){
             throw new ClientException("用户不存在");
         }
-        Boolean hasLogin = stringRedisTemplate.hasKey("login_" + userDo.getUsername());
-        if (hasLogin){
-            throw new ClientException("用户已登录");
+        Map<Object ,Object> hasLoginMap = stringRedisTemplate.opsForHash().entries("login_" + userLoginReqDTO.getUsername());
+        if (CollUtil.isNotEmpty(hasLoginMap)) {
+            String token = hasLoginMap.keySet().stream()
+                    .findFirst()
+                    .map(Object::toString)
+                    .orElseThrow(() -> new ClientException("用户登录错误"));
+            return new UserLoginRespDTO(token);
         }
         String uuid = UUID.randomUUID().toString();
         // 不能存太多的key带有相同的value
@@ -131,7 +136,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDo> implements 
          *  Val:Json字符串（用户信息）
          */
         stringRedisTemplate.opsForHash().put("login_" + userDo.getUsername(), uuid, JSON.toJSONString(userDo));
-        stringRedisTemplate.expire("login_" + userDo.getUsername(), 30L, TimeUnit.DAYS);
+        stringRedisTemplate.expire("login_" + userDo.getUsername(), 30L, TimeUnit.MINUTES);
         return new UserLoginRespDTO(uuid);
     }
 
