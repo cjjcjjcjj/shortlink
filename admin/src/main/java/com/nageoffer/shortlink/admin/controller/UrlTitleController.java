@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UrlTitleController {
 
-    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService(){
-
-    };
+    private final ShortLinkRemoteService shortLinkActualRemoteService;
 
     /**
      * 根据url获取对应网站的标题
@@ -26,6 +24,6 @@ public class UrlTitleController {
     //TODO 获取标题超时？
     @GetMapping("/api/short-link/admin/v1/title")
     public Result<String> getTitleByUrl(@RequestParam("url") String url){
-        return shortLinkRemoteService.getTitleByUrl(url);
+        return shortLinkActualRemoteService.getTitleByUrl(url);
     }
 }

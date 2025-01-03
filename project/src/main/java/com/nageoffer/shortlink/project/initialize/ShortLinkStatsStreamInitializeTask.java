@@ -17,7 +17,7 @@ import static com.nageoffer.shortlink.project.common.constant.RedisKeyConstant.S
 @RequiredArgsConstructor
 public class ShortLinkStatsStreamInitializeTask implements InitializingBean {
 
-    private StringRedisTemplate stringRedisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     public void afterPropertiesSet() throws Exception {

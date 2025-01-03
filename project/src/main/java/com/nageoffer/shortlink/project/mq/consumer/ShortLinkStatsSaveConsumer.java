@@ -55,7 +55,7 @@ public class ShortLinkStatsSaveConsumer implements StreamListener<String, MapRec
     private final StringRedisTemplate stringRedisTemplate;
     private final MessageQueueIdempotentHandler messageQueueIdempotentHandler;
 
-    @Value("${short-link.stats.locale.amap-key}")
+    @Value("${short-link.stats.locate.AmMap-key}")
     private String statsLocaleAmapKey;
 
     @Override

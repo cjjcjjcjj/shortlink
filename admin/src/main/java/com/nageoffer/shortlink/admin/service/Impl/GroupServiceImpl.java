@@ -39,14 +39,12 @@ import static com.nageoffer.shortlink.admin.common.constant.RedisCacheConstant.*
 @RequiredArgsConstructor
 public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implements GroupService {
 
+    private final ShortLinkRemoteService shortLinkActualRemoteService;
     private final RedissonClient redissonClient;
 
     @Value("${short-link.group.max-num}")
     private Integer groupMaxNum;
 
-    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService(){
-
-    };
     @Override
     public void saveGroup(String groupName) {
         saveGroup(UserContext.getUsername(), groupName);
@@ -88,7 +86,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
                 .eq(GroupDO::getUsername, UserContext.getUsername())
                 .orderByDesc(GroupDO::getSortOrder, GroupDO::getUpdateTime);
         List<GroupDO> groupDOList = baseMapper.selectList(queryWrapper);
-        Result<List<ShortLinkGroupCountQueryRespDTO>> listResult = shortLinkRemoteService
+        Result<List<ShortLinkGroupCountQueryRespDTO>> listResult = shortLinkActualRemoteService
                 .listGroupShortLinkCount(groupDOList.stream()
                         .map(GroupDO::getGid)
                         .toList());

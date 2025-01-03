@@ -22,8 +22,8 @@ public interface LinkAccessLogsMapper extends BaseMapper<LinkAccessLogsDO> {
      */
     @Select("""
     select ip, COUNT(ip) AS count from t_link_access_logs
-    where full_short_url = #{fullShortUrl} AND gid = #{gid} AND create_time BETWEEN CONCAT(#{startDate},' 00:00:00') and
-        CONCAT(#{endDate},' 23:59:59') group by full_short_url, gid, ip order by count DESC LIMIT 5;
+    where full_short_url = #{fullShortUrl} AND gid = #{gid} AND create_time BETWEEN #{startDate} AND #{endDate}
+    group by full_short_url, gid, ip order by count DESC LIMIT 5;
 """)
     List<HashMap<String, Object>> listTopIpByShortLink(ShortLinkStatsReqDTO requestParam);
 
@@ -38,7 +38,7 @@ public interface LinkAccessLogsMapper extends BaseMapper<LinkAccessLogsDO> {
             "    t_link_access_logs " +
             "WHERE " +
             "    gid = #{gid} " +
-            "    AND create_time BETWEEN CONCAT(#{startDate},' 00:00:00') AND CONCAT(#{endDate},' 23:59:59') " +
+            "    AND create_time BETWEEN #{startDate} AND #{endDate} " +
             "GROUP BY " +
             "    gid, ip " +
             "ORDER BY " +
@@ -80,7 +80,7 @@ public interface LinkAccessLogsMapper extends BaseMapper<LinkAccessLogsDO> {
             "SELECT " +
             "    user, " +
             "    CASE " +
-            "        WHEN MIN(create_time) BETWEEN CONCAT(#{startDate},' 00:00:00') AND CONCAT(#{endDate},' 23:59:59') THEN '新访客' " +
+            "        WHEN MIN(create_time) BETWEEN #{startDate} AND #{endDate} THEN '新访客' " +
             "        ELSE '老访客' " +
             "    END AS uvType " +
             "FROM " +
@@ -112,7 +112,7 @@ public interface LinkAccessLogsMapper extends BaseMapper<LinkAccessLogsDO> {
     @Select("""
 select COUNT(user) as pv, COUNT(DISTINCT user) as uv, COUNT(DISTINCT ip) as uip from t_link_access_logs
 where full_short_url = #{fullShortUrl} AND gid = #{gid} AND
-create_time BETWEEN CONCAT(#{startDate},' 00:00:00') AND CONCAT(#{endDate},' 23:59:59')
+create_time BETWEEN #{startDate} AND #{endDate}
 GROUP By full_short_url, gid;
 """)
     LinkAccessStatsDO findPvUvUipStatsByShortLink(ShortLinkStatsReqDTO requestParam);
@@ -128,9 +128,7 @@ GROUP By full_short_url, gid;
             "    t_link_access_logs " +
             "WHERE " +
             "    gid = #{gid} " +
-            "    AND create_time BETWEEN CONCAT(#{startDate},' 00:00:00') AND CONCAT(#{endDate},' 23:59:59') " +
-            "GROUP BY " +
-            "    gid;")
+            "    AND create_time BETWEEN #{startDate} AND #{endDate} GROUP BY gid;")
     LinkAccessStatsDO findPvUvUidStatsByGroup(ShortLinkGroupStatsReqDTO requestParam);
 
     /**
@@ -140,7 +138,7 @@ GROUP By full_short_url, gid;
             "SELECT " +
             "    user, " +
             "    CASE " +
-            "        WHEN MIN(create_time) BETWEEN CONCAT(#{startDate},' 00:00:00') AND CONCAT(#{endDate},' 23:59:59') THEN '新访客' " +
+            "        WHEN MIN(create_time) BETWEEN #{startDate} AND #{endDate} THEN '新访客' " +
             "        ELSE '老访客' " +
             "    END AS uvType " +
             "FROM " +
