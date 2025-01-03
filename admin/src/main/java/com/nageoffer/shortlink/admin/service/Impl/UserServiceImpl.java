@@ -118,7 +118,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDo> implements 
         if (userDo == null){
             throw new ClientException("用户不存在");
         }
-        Map<Object ,Object> hasLoginMap = stringRedisTemplate.opsForHash().entries("login_" + userLoginReqDTO.getUsername());
+        Map<Object ,Object> hasLoginMap = stringRedisTemplate.opsForHash().entries(USER_LOGIN_KEY+ userLoginReqDTO.getUsername());
         if (CollUtil.isNotEmpty(hasLoginMap)) {
             String token = hasLoginMap.keySet().stream()
                     .findFirst()
@@ -135,20 +135,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDo> implements 
          *  Key:token
          *  Val:Json字符串（用户信息）
          */
-        stringRedisTemplate.opsForHash().put("login_" + userDo.getUsername(), uuid, JSON.toJSONString(userDo));
-        stringRedisTemplate.expire("login_" + userDo.getUsername(), 30L, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForHash().put(USER_LOGIN_KEY + userDo.getUsername(), uuid, JSON.toJSONString(userDo));
+        stringRedisTemplate.expire(USER_LOGIN_KEY + userDo.getUsername(), 30L, TimeUnit.MINUTES);
         return new UserLoginRespDTO(uuid);
     }
 
     @Override
     public Boolean checkLogin(String username, String token) {
-        return  stringRedisTemplate.opsForHash().get("login_" + username, token) != null;
+        return  stringRedisTemplate.opsForHash().get(USER_LOGIN_KEY + username, token) != null;
     }
 
     @Override
     public void logout(String username, String token) {
         if (checkLogin(username, token)){
-            stringRedisTemplate.delete("login_" + username);
+            stringRedisTemplate.delete(USER_LOGIN_KEY + username);
             return;
         }
         throw new ClientException("用户Token不存在或未登录");
