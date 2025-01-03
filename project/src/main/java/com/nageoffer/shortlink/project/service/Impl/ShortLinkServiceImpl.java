@@ -263,16 +263,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             baseMapper.insert(shortLinkDO);
             shortLinkGotoMapper.insert(shortLinkGotoDO);
         } catch (DuplicateKeyException ex){
-            //TODO 误判的短链接如何处理
-            //第一种，短链接确实真实存在缓存
-            //第二种，短链接不一定存在缓存中
-            LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
-                    .eq(ShortLinkDO::getFullShortUrl, fullShortUrl);
-            ShortLinkDO hasShortLinkDO = baseMapper.selectOne(queryWrapper);
-            if (hasShortLinkDO != null){
-                log.warn("短链接：{} 重复入库", fullShortUrl);
-                throw new ServiceException("短链接生成重复");
-            }
+            throw new ServiceException(String.format("短链接 %s 生成重复", fullShortUrl));
         }
         stringRedisTemplate.opsForValue().set(
                 String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),
@@ -521,7 +512,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 throw new ServiceException("短链接频繁生成，请稍后再试");
             }
             String originUrl = shortLinkCreateReqDTO.getOriginUrl();
-            originUrl += System.currentTimeMillis();
+            originUrl += UUID.randomUUID().toString();
             //改变原始的避免冲突 这里的处理 加毫秒值目的就是生成不同的短链接，在多线程情况下有可能进入到catch块里，
             // 因为这时还没加到布隆过滤器里面，就误判为不存在，但是数据库中其实已经插入进去了，所以在异常块里直接把完整的短链接放到布隆过滤器里面就好了
             shortUri = HashUtil.hashToBase62(originUrl);
